@@ -101,7 +101,21 @@ export class OpenDocumentLinkCommand implements Command {
 		try {
 			stat = await vscode.workspace.fs.stat(resource);
 		} catch {
-			return false;
+			try {
+				let document: vscode.TextDocument;
+				let fixedFileName = resource.fsPath;
+
+				if (!fixedFileName.endsWith('.md')) {
+					fixedFileName = `${fixedFileName}.md`;
+				}
+
+				let untitledUri = vscode.Uri.parse(`untitled:${fixedFileName}`);
+				document = await vscode.workspace.openTextDocument(untitledUri);
+				vscode.window.showTextDocument(document);
+				return true;
+			} catch {
+				return false;
+			}
 		}
 
 		if (stat.type === vscode.FileType.Directory) {
